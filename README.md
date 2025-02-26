@@ -18,7 +18,7 @@ Este projeto tem como objetivo a capacidade de observar movimentações de carte
 A aplicação é uma escolha válida para a disciplina de Sistemas Distribuídos pois possui alguns módulos indepentes que necessitam de uma comunicação sincronizada entre si, escutar eventos, compartilhar dados com base nesses eventos, etc...
 
 ## Equipe: 
-FrontEnd: Márcio Martins
-BackEnd: Márcio Ferreira
-DevOps: Marcio Júnior
+- FrontEnd: Márcio Martins;
+- BackEnd: Márcio Ferreira;
+- DevOps: Marcio Júnior
 
