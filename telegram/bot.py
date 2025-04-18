@@ -1,4 +1,4 @@
-import telebot
+import telebot # type: ignore
 
 bot = telebot.TeleBot('YOUR_TOKEN')
 

@@ -1,47 +1,64 @@
-import sqlite3
-from flask import Flask
+import json
+import os
+import threading
+from typing import List, Dict
 
-app = Flask(__name__)
 
-DATABASE = 'blockchain_monitor.db'
+class Db:
+    _instance = None
+    _db_path = "db.json"
+    _lock = threading.Lock()
 
-def get_db():
-    conn = sqlite3.connect(DATABASE)
-    conn.row_factory = sqlite3.Row  # Permite acessar as colunas como dicionários
-    return conn
+    def __new__(cls):
+        if not cls._instance:
+            cls._instance = super().__new__(cls)
+            cls._initialize_db()
+        return cls._instance
 
-# Criação das tabelas, caso não existam
-def init_db():
-    with app.app_context():
-        db = get_db()
-        db.execute("""
-            CREATE TABLE IF NOT EXISTS wallets (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                address TEXT UNIQUE NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            );
-        """)
-        db.execute("""
-            CREATE TABLE IF NOT EXISTS transactions (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                wallet_id INTEGER,
-                transaction_hash TEXT UNIQUE NOT NULL,
-                amount REAL,
-                timestamp TIMESTAMP NOT NULL,
-                type TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (wallet_id) REFERENCES wallets(id)
-            );
-        """)
-        db.commit()
+    @classmethod
+    def _initialize_db(cls):
+        
+        if not os.path.exists(cls._db_path):
+            with open(cls._db_path, 'w') as f:
+                json.dump({"wallets": {}, "transactions": []}, f, indent=4)
 
-# Rota para inicializar o banco
-@app.route('/init_db')
-def init_database():
-    init_db()
-    return "Database initialized!"
+    def _load_db(self) -> Dict:
+        
+        with self._lock:
+            with open(self._db_path, 'r') as f:
+                return json.load(f)
 
-if __name__ == '__main__':
-    app.run(debug=True)
+    def _save_db(self, data: Dict):
+        with self._lock:
+            with open(self._db_path, 'w') as f:
+                json.dump(data, f, indent=4)
+
+    def add_wallet(self, network: str, wallet_address: str):
+        with self._lock:  
+            data = self._load_db()
+            if network not in data["wallets"]:
+                data["wallets"][network] = []
+            if wallet_address not in data["wallets"][network]:
+                data["wallets"][network].append(wallet_address)
+                self._save_db(data)
+            else:
+                print(f"Carteira {wallet_address} já está registrada na rede {network}.")
+
+    def get_wallets(self, network: str) -> List[str]:
+        
+        with self._lock: 
+            data = self._load_db()
+            return data["wallets"].get(network, [])
+
+    def add_transaction(self, transaction_data: Dict):
+        
+        with self._lock: 
+            data = self._load_db()
+            data["transactions"].append(transaction_data)
+            self._save_db(data)
+
+    def get_transactions(self) -> List[Dict]:
+        
+        with self._lock: 
+            data = self._load_db()
+            return data["transactions"]
