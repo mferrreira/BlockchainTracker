@@ -1,9 +1,10 @@
-from Scanner import Scanner
+from scrapers.Scanner import Scanner
 from typing import override
 from dotenv import load_dotenv
 import requests
 import os
 
+load_dotenv()
 
 class BaseScanner(Scanner):
 
@@ -30,8 +31,8 @@ class BaseScanner(Scanner):
         data = response.json()
 
         if data.get("status") != "1":
-            print("Erro na resposta da API:", data.get("message", "Erro desconhecido"))
-            return []
+            print("Erro na resposta da API:", data.get("message"), "Status:", data.get("status"), "Code:", data.get("result"))
+            return
 
         transactions = []
 

@@ -1,11 +1,13 @@
-from Scanner import Scanner
+from scrapers.Scanner import Scanner
 from typing import override
 from dotenv import load_dotenv
 import requests
 import os
 
+load_dotenv()
 
-class BaseScanner(Scanner):
+
+class EthScanner(Scanner):
 
     def __init__(self, ):
         super().__init__('ethereum')
@@ -52,8 +54,3 @@ class BaseScanner(Scanner):
             })
 
         return transactions
-
-if __name__ == "__main__":
-    c = BaseScanner()
-    a= c.fetch_transactions('0x4C05f01cfD6353CCF75209638F4d1B2C7D22173a')
-    print(a)
