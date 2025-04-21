@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from db.db import Db
 from scrapers.EthScanner import EthScanner
 from scrapers.SolScanner import SolScanner
@@ -6,6 +7,7 @@ from scrapers.BaseScanner import BaseScanner
 import threading
 
 app = Flask(__name__)
+CORS(app)
 
 # Função para inicializar os scanners
 def initialize_scanners():
