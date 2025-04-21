@@ -40,8 +40,8 @@ class EthScanner(Scanner):
         for t in data.get("result", []):
             from_address = t.get("from")
             to_address = t.get("to")
-            value = int(t.get("value", 0)) / 1e18  # Convertendo de wei para ETH/BASE
-            token_symbol = "ETH" if t.get("tokenSymbol") is None else t.get("tokenSymbol")  # Se for uma transação normal, é ETH
+            value = int(t.get("value", 0)) / 1e18 
+            token_symbol = "ETH" if t.get("tokenSymbol") is None else t.get("tokenSymbol")
 
             transactions.append({
                 'transaction_id': t.get("hash"),

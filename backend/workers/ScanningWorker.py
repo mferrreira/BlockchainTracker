@@ -1,14 +1,16 @@
 from scrapers.EthScanner import EthScanner
 from scrapers.SolScanner import SolScanner
 from scrapers.BaseScanner import BaseScanner
+from scrapers.Scanner import Scanner
 import threading
 import time
+stop_event = threading.Event()
 
-def scanner_worker(scanner):
-    print(f"🛰️ Iniciando worker para {scanner.network_name}...")
+def scanner_worker(scanner: Scanner, stop_event):
+    print(f"[WORKERS] Iniciando worker para {scanner.network_name}...")
 
     try:
-        while True:
+        while not stop_event.is_set():
             for wallet in scanner.wallets:
                 print(f"[{scanner.network_name}] Verificando transações da carteira {wallet}")
                 
@@ -24,10 +26,8 @@ def scanner_worker(scanner):
                     scanner.save_transaction(tx)
 
             print(f"[{scanner.network_name}] Aguardando {scanner.polling_interval}s...")
-            time.sleep(scanner.polling_interval)
+            stop_event.wait(timeout=scanner.polling_interval)
 
-    except KeyboardInterrupt:
-        print(f"[{scanner.network_name}] Interrompido pelo usuário.")
     except Exception as e:
         print(f"[{scanner.network_name}] Erro: {e}")
     finally:
@@ -42,24 +42,22 @@ def run_all_workers():
 
     threads = []
 
-    # Inicia todas as threads simultaneamente
     for scanner in scanners:
-        t = threading.Thread(target=scanner_worker, args=(scanner,), daemon=True)
+        t = threading.Thread(target=scanner_worker, args=(scanner, stop_event), daemon=True)
         t.start()
         threads.append(t)
     
-    print("✅ Todos os workers iniciados.")
+    print("[WORKERS] Todos os workers iniciados.")
 
     try:
         while True:
-            time.sleep(1)  # Aguardar sem bloquear
+            time.sleep(1)
     except KeyboardInterrupt:
-        print("👋 Encerrando o sistema...")
-    
-    # Aguarda todas as threads finalizarem ao encerrar o sistema
-    for t in threads:
-        t.join()
+        print("[WORKERS] Encerrando o sistema...")
+        stop_event.set()
+        for t in threads:
+            t.join()
+        print("[WORKERS] Todos os workers finalizados.")
 
 if __name__ == "__main__":
     run_all_workers()
-

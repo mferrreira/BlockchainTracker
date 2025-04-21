@@ -29,9 +29,9 @@ class Db:
             return json.load(f)
 
     def _save_db(self, data: Dict):
-        # Salvar o banco de dados com lock
-        with open(self._db_path, 'w') as f:
-            json.dump(data, f, indent=4)
+        with self._lock:
+            with open(self._db_path, 'w') as f:
+                json.dump(data, f, indent=4)
 
     def add_wallet(self, network: str, wallet_address: str):
         data = self._load_db()
@@ -44,33 +44,30 @@ class Db:
             print(f"Carteira {wallet_address} já está registrada na rede {network}.")
 
     def get_wallets(self, network: str) -> List[str]:
-        # Usando lock para acesso ao banco
         data = self._load_db()
         return data["wallets"].get(network, [])
-
+    
     def add_transaction(self, transaction_data: Dict):
-        with self._lock:
-            data = self._load_db()
+        data = self._load_db()
 
-            # Identifica a rede da transação
-            network = transaction_data['network']
-            transaction_data.pop('network', None)  # Remove a chave 'network' da transação
+        network = transaction_data['network']
+        transaction_data.pop('network', None)
 
-            # Verifica se a rede já existe no dicionário de transações
-            if network not in data["transactions"]:
-                data["transactions"][network] = []
+        if network not in data["transactions"]:
+            data["transactions"][network] = []
 
-            # Verifica se a transação já existe (checa pelo transaction_id)
-            existing_tx = next((tx for tx in data["transactions"][network] if tx['transaction_id'] == transaction_data['transaction_id']), None)
-            
-            if existing_tx:
-                print(f"Transação {transaction_data['transaction_id']} já existe. Ignorando...")
-                return  # Ignora se a transação já existir
+        existing_tx = next((tx for tx in data["transactions"][network] if tx['transaction_id'] == transaction_data['transaction_id']), None)
 
-            # Adiciona a transação à lista de transações daquela rede
-            data["transactions"][network].append(transaction_data)
+        if existing_tx:
+            print(f"Transação {transaction_data['transaction_id']} já existe. Ignorando...")
+            return
 
-            self._save_db(data)
+        print("[DB] Adicionando nova transação")
+
+        data["transactions"][network].append(transaction_data)
+        self._save_db(data)
+
+        print("[DB] Transação adicionada com sucesso.")
             
     def get_transactions(self, network) -> List[Dict]:
         data = self._load_db()

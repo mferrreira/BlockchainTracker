@@ -68,17 +68,3 @@ class SolScanner(Scanner):
 
         except Exception as e:
             print(f"Erro ao buscar transações: {e}")
-
-
-
-
-if __name__ == "__main__":
-    # Teste rápido da classe SolScanner
-    sol_scanner = SolScanner()
-    wallet_address = "2TmTNypeGeNzHnfssQhpKJWpWnbGTK5TErp3tDmPvQGG"  # Substitua pelo endereço da carteira que deseja testar
-    transactions = sol_scanner.fetch_transactions(wallet_address)
-    
-    if transactions:
-        print("Transações obtidas:")
-    else: 
-        print("Nenhuma transação encontrada ou erro ao obter transações.")

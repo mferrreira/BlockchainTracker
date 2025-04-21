@@ -16,7 +16,6 @@ class Scanner(ABC):
         raise NotImplementedError()
 
     def save_transaction(self, transaction_data):
-        """Salva uma transação no banco de dados."""
         transaction_data["network"] = self.network_name
         transaction_data["block_time"] = int(transaction_data["block_time"])
         self.db.add_transaction(transaction_data)
@@ -30,7 +29,6 @@ class Scanner(ABC):
         return sorted(wallet_txs, key=lambda x: x["block_time"], reverse=True)[0]["transaction_id"]
 
     def run(self):
-        """Executa o scraper em loop, verificando as carteiras monitoradas periodicamente."""
         while True:
             print(f"[{self.network_name}] Rodando scanner para {len(self.wallets)} carteiras.")
             for wallet in self.wallets:
@@ -45,10 +43,10 @@ class Scanner(ABC):
 
                     new_txs = []
 
-                    for tx in reversed(transactions):  # do mais antigo pro mais novo
+                    for tx in reversed(transactions):
                         if last_tx and tx["transaction_id"] == last_tx:
-                            break  # Parou, já temos essa salva
-                        new_txs.insert(0, tx)  # Inserindo no início pra manter ordem correta
+                            break 
+                        new_txs.insert(0, tx)
 
                     if new_txs:
                         for tx in new_txs:
